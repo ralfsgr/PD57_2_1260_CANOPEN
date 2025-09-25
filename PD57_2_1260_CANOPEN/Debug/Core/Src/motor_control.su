@@ -14,7 +14,7 @@
 ../Core/Src/motor_control.c:185:19:Motor_Home	32	static
 ../Core/Src/motor_control.c:244:19:Motor_SetProfilePositionMode	24	static
 ../Core/Src/motor_control.c:258:19:Motor_ConfigureMotion	32	static
-../Core/Src/motor_control.c:275:19:Motor_SetTargetPosition	32	static
-../Core/Src/motor_control.c:284:19:Motor_StartMotion	32	static
-../Core/Src/motor_control.c:319:19:Motor_PollMotion	24	static
-../Core/Src/motor_control.c:334:19:Motor_Stop	24	static
+../Core/Src/motor_control.c:277:19:Motor_SetTargetPosition	32	static
+../Core/Src/motor_control.c:286:19:Motor_StartMotion	32	static
+../Core/Src/motor_control.c:321:19:Motor_PollMotion	24	static
+../Core/Src/motor_control.c:336:19:Motor_Stop	24	static

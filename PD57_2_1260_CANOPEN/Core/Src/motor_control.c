@@ -261,10 +261,12 @@ HAL_StatusTypeDef Motor_ConfigureMotion(CAN_HandleTypeDef *hcan, UART_HandleType
     return HAL_ERROR;
   }
   if (CANopen_SDO_Write32(hcan,huart, OD_PROFILE_ACCEL, 0x00, 500) != HAL_OK) {
+	// Note: Adjust acceleration to balance smooth motion and responsiveness. Typical values are 100–10000 inc/s², depending on your application.
     Debug_Print(huart, "Set Acceleration Failed\r\n");
     return HAL_ERROR;
   }
   if (CANopen_SDO_Write32(hcan,huart, OD_PROFILE_DECEL, 0x00, 500) != HAL_OK) {
+	// Deceleration often matches acceleration for symmetry, but you can adjust independently.
     Debug_Print(huart, "Set Deceleration Failed\r\n");
     return HAL_ERROR;
   }

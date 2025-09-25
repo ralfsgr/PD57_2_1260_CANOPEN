@@ -59,10 +59,19 @@ uint8_t rx_index = 0;
 int user_input = 0;    // Variable to store the parsed integer
 volatile uint8_t rx_complete = 0;
 
+
 uint32_t duty_cycle = 0; // Example: 50% duty cycle
 // Since ARR = 99, the CCR value ranges from 0 to 99 to represent 0% to 100% duty cycle.
 // Since ARR = 49, the CCR value ranges from 0 to 49 to represent 0% to 100% duty cycle.
 
+
+
+int SPEED = 50000; //  The motor’s datasheet specifies a maximum velocity (e.g., 50000 inc/s for 200 steps/rev with 64 microsteps).
+#define REVOLUTIONS 10 // Change this for fixed revolutions (e.g., 3, 7)
+
+#define TARGET_POSITION (REVOLUTIONS * STEPS_PER_REV) // Override motor_control.h
+// redefine TARGET_POSITION in main.c to override the one in motor_control.h.
+// This avoids the initializer element is not constant error since macros are evaluated at compile time.
 
 
 /* USER CODE END PV */
@@ -114,6 +123,7 @@ int main(void)
   MX_CAN1_Init();
   /* USER CODE BEGIN 2 */
 
+
   // Start UART receive interrupt
   HAL_UART_Receive_IT(&huart3, rx_buffer, 1);
   // Prompt user for input
@@ -153,7 +163,7 @@ int main(void)
      Error_Handler();
    }
 
-   if (Motor_ConfigureMotion(&hcan1, &huart3, 5000) != HAL_OK) { // 5000 inc/s
+   if (Motor_ConfigureMotion(&hcan1, &huart3, SPEED) != HAL_OK) { // max 50000 inc/s per datasheet for 200 steps/rev w 64 microsteps
      Error_Handler();
    }
 
