@@ -38,8 +38,8 @@
 /* USER CODE BEGIN PD */
 
 #define CANOPEN_NODE_ID 0x01
-#define STEPS_PER_REV 12800  // 200 steps/rev * 64 microsteps
-#define TARGET_REV 1
+#define STEPS_PER_REV 6400  // 200 steps/rev * 64 microsteps // 200 steps * 32 microsteps
+#define TARGET_REV 10
 #define TARGET_POSITION (TARGET_REV * STEPS_PER_REV)  // 128000 steps
 
 #define OD_CONTROLWORD 0x6040
@@ -215,7 +215,7 @@ int main(void)
     Debug_Print(buf);
     Error_Handler();
   }
-  Delay_ms(200);
+  Delay_ms(1000);
 
 
   Debug_Print("Starting CANopen Motor Control\r\n");
@@ -235,13 +235,13 @@ int main(void)
     Debug_Print("CAN Filter Config Failed\r\n");
     Error_Handler();
   }
-  Delay_ms(200);
+  Delay_ms(1000);
 
 
       // Start NMT
         Debug_Print("Sending NMT Start\r\n");
         CANopen_NMT_Start(CANOPEN_NODE_ID);
-        Delay_ms(200);
+        Delay_ms(1000);
 
         // Check statusword
         uint16_t status = CANopen_SDO_Read16(&hcan1, OD_STATUSWORD, 0x00);
@@ -358,18 +358,28 @@ int main(void)
 */
 
 
+            // microstep resolution 200 full steps x microsteps; microsteps = (2^x) x = 0 .... 8;
+            if (CANopen_SDO_Write8(&hcan1, 0x2000, 0x00, 0x05) != HAL_OK) {  // 5000 inc/s
+              Debug_Print("Set Velocity Failed\r\n");
+              Error_Handler();
+            }
+
+
+
+
+
 
 
                       // Configure velocity and acceleration
-                        if (CANopen_SDO_Write32(&hcan1, OD_PROFILE_VELOCITY, 0x00, 5000) != HAL_OK) {  // 5000 inc/s
+                        if (CANopen_SDO_Write32(&hcan1, OD_PROFILE_VELOCITY, 0x00, 100000) != HAL_OK) {  // 5000 inc/s
                           Debug_Print("Set Velocity Failed\r\n");
                           Error_Handler();
                         }
-                        if (CANopen_SDO_Write32(&hcan1, OD_PROFILE_ACCEL, 0x00, 500) != HAL_OK) {
+                        if (CANopen_SDO_Write32(&hcan1, OD_PROFILE_ACCEL, 0x00, 1500) != HAL_OK) {
                           Debug_Print("Set Acceleration Failed\r\n");
                           Error_Handler();
                         }
-                        if (CANopen_SDO_Write32(&hcan1, OD_PROFILE_DECEL, 0x00, 500) != HAL_OK) {
+                        if (CANopen_SDO_Write32(&hcan1, OD_PROFILE_DECEL, 0x00, 1500) != HAL_OK) {
                           Debug_Print("Set Deceleration Failed\r\n");
                           Error_Handler();
                         }
@@ -393,9 +403,6 @@ int main(void)
 
 
                          // CiA 402 state machine
-
-
-
 
 
                         // homing start
@@ -438,13 +445,14 @@ int main(void)
                         }
                         Delay_ms(500);
 
-                        if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x001F) != HAL_OK) {
+                        if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x000F) != HAL_OK) {
                           Debug_Print("Switch On Failed\r\n");
                           Error_Handler();
                         }
                         Delay_ms(500);
 
-                        // Check homing completion by position (method 35 sets position to 0)
+
+                          // Verify position
                         int32_t current_pos = (int32_t)CANopen_SDO_Read32(&hcan1, OD_ACTUAL_POSITION, 0x00);
                           snprintf(buf, sizeof(buf), "Position after homing: %ld steps\r\n", current_pos);
                           Debug_Print(buf);
@@ -462,9 +470,24 @@ int main(void)
                               snprintf(buf, sizeof(buf), "Final Homing Statusword: 0x%04X\r\n", status);
                               Debug_Print(buf);
 
-
-
                         // homing end
+
+
+
+
+                              // Reset state machine
+                                if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x0000) != HAL_OK) {  // Disable Voltage
+                                  Debug_Print("Disable Voltage Failed\r\n");
+                                  Error_Handler();
+                                }
+                                Delay_ms(1000);
+                                status = CANopen_SDO_Read16(&hcan1, OD_STATUSWORD, 0x00);
+                                snprintf(buf, sizeof(buf), "Status after Disable: 0x%04X\r\n", status);
+                                Debug_Print(buf);
+
+
+
+
 
 
 
@@ -486,7 +509,7 @@ int main(void)
                              Debug_Print("Switch On Failed\r\n");
                              Error_Handler();
                            }
-                           Delay_ms(500);
+                           Delay_ms(1000);
                            status = CANopen_SDO_Read16(&hcan1, OD_STATUSWORD, 0x00);
                            snprintf(buf, sizeof(buf), "Status after Switch On: 0x%04X\r\n", status);
                            Debug_Print(buf);
@@ -495,7 +518,7 @@ int main(void)
                              Debug_Print("Switched On Failed\r\n");
                              Error_Handler();
                            }
-                           Delay_ms(500);
+                           Delay_ms(1000);
                            status = CANopen_SDO_Read16(&hcan1, OD_STATUSWORD, 0x00);
                            snprintf(buf, sizeof(buf), "Status after Switched On: 0x%04X\r\n", status);
                            Debug_Print(buf);
@@ -504,7 +527,7 @@ int main(void)
                              Debug_Print("Enable Operation Failed\r\n");
                              Error_Handler();
                            }
-                           Delay_ms(500);
+                           Delay_ms(1000);
 
                            // Set target position
                            if (CANopen_SDO_Write32(&hcan1, OD_TARGET_POSITION, 0x00, TARGET_POSITION) != HAL_OK) {
