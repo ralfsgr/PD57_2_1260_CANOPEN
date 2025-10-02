@@ -488,7 +488,10 @@ int main(void)
 
 
 
-
+// 6.1 Detailed Object Specifications
+// 7.1.1 Object 6040h: Control Word
+// 6.2 How to move a Motor in pp Mode
+// 8.3 How to start a Homing in hm Mode
 
 
                          // drive start
@@ -697,6 +700,9 @@ int main(void)
                                } while (!(status & 0x0400));  // Bit 10: Target reached
 
                                // reverse drive end
+
+
+
 
 
 
