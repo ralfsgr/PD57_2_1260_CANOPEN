@@ -360,26 +360,6 @@ int main(void)
 
 
 
-
-                // Check homing completion by position (method 35 sets position to 0)
-                int32_t current_pos = (int32_t)CANopen_SDO_Read32(&hcan1, OD_ACTUAL_POSITION, 0x00);
-                  snprintf(buf, sizeof(buf), "Position after homing: %ld steps\r\n", current_pos);
-                  Debug_Print(buf);
-                  if (current_pos == 0xFFFFFFFF) {
-                    Debug_Print("Read Position Failed\r\n");
-                    Error_Handler();
-                  }
-                  if (current_pos != 0) {
-                    Debug_Print("Homing Failed: Position not zero\r\n");
-                    // Proceed anyway, as motion works
-                      } else {
-                        Debug_Print("Homing Successful\r\n");
-                      }
-                      status = CANopen_SDO_Read16(&hcan1, OD_STATUSWORD, 0x00);
-                      snprintf(buf, sizeof(buf), "Final Homing Statusword: 0x%04X\r\n", status);
-                      Debug_Print(buf);
-
-
                       // Configure velocity and acceleration
                         if (CANopen_SDO_Write32(&hcan1, OD_PROFILE_VELOCITY, 0x00, 5000) != HAL_OK) {  // 5000 inc/s
                           Debug_Print("Set Velocity Failed\r\n");
@@ -463,6 +443,27 @@ int main(void)
                           Error_Handler();
                         }
                         Delay_ms(500);
+
+                        // Check homing completion by position (method 35 sets position to 0)
+                        int32_t current_pos = (int32_t)CANopen_SDO_Read32(&hcan1, OD_ACTUAL_POSITION, 0x00);
+                          snprintf(buf, sizeof(buf), "Position after homing: %ld steps\r\n", current_pos);
+                          Debug_Print(buf);
+                          if (current_pos == 0xFFFFFFFF) {
+                            Debug_Print("Read Position Failed\r\n");
+                            Error_Handler();
+                          }
+                          if (current_pos != 0) {
+                            Debug_Print("Homing Failed: Position not zero\r\n");
+                            // Proceed anyway, as motion works
+                              } else {
+                                Debug_Print("Homing Successful\r\n");
+                              }
+                              status = CANopen_SDO_Read16(&hcan1, OD_STATUSWORD, 0x00);
+                              snprintf(buf, sizeof(buf), "Final Homing Statusword: 0x%04X\r\n", status);
+                              Debug_Print(buf);
+
+
+
                         // homing end
 
 
