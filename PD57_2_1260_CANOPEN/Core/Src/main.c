@@ -41,6 +41,7 @@
 #define STEPS_PER_REV 6400  // 200 steps/rev * 64 microsteps // 200 steps * 32 microsteps
 #define TARGET_REV 10
 #define TARGET_POSITION (TARGET_REV * STEPS_PER_REV)  // 128000 steps
+#define N_TARGET_POSITION -1*(TARGET_REV * STEPS_PER_REV)  // 128000 steps
 
 #define OD_CONTROLWORD 0x6040
 #define OD_STATUSWORD 0x6041
@@ -359,7 +360,7 @@ int main(void)
 
 
             // microstep resolution 200 full steps x microsteps; microsteps = (2^x) x = 0 .... 8;
-            if (CANopen_SDO_Write8(&hcan1, 0x2000, 0x00, 0x05) != HAL_OK) {  // 5000 inc/s
+            if (CANopen_SDO_Write8(&hcan1, 0x2000, 0x00, 0x05) != HAL_OK) {  // 2^5 = 32 microsteps in 1 full step;
               Debug_Print("Set Velocity Failed\r\n");
               Error_Handler();
             }
@@ -490,6 +491,7 @@ int main(void)
 
 
 
+                         // drive start
 
                         // Disable limit switches
                         if (CANopen_SDO_Write32(&hcan1, OD_LIMIT_SWITCHES, 0x00, 0x00000003) != HAL_OK) {
@@ -541,7 +543,19 @@ int main(void)
                            snprintf(buf, sizeof(buf), "Status after Enable Op: 0x%04X\r\n", status);
                            Debug_Print(buf);
 
-                           if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x001F) != HAL_OK) {
+
+/*
+                           if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x001F) != HAL_OK) { // 0101 1111 = 5F (6 bits 1 sets relative); 0001 1111 1F is absolute with 6 bit 0;
+                             Debug_Print("Mark the new target position as active Failed\r\n");
+                             Error_Handler();
+                           }
+                           Delay_ms(100);
+                           Debug_Print("Mark the new target position as active Sent\r\n");
+*/
+
+
+                           if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x005F) != HAL_OK) { // 0101 1111 = 5F (6 bits 1 sets relative); 0001 1111 1F is absolute with 6 bit 0;
+                        	   // with relative its easier to control direction, line 500k steps in one direction than 100k steps back;
                              Debug_Print("Mark the new target position as active Failed\r\n");
                              Error_Handler();
                            }
@@ -554,7 +568,6 @@ int main(void)
                               Error_Handler();
                            }
                            Delay_ms(100);
-
 
                            // Poll statusword for target reached
                              do {
@@ -571,15 +584,22 @@ int main(void)
                                Delay_ms(100);
                              } while (!(status & 0x0400));  // Bit 10: Target reached
 
+                             // drive end
+
+
+
+
                              // Stop
                              if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x0002) != HAL_OK) {  // Quick Stop
                                Debug_Print("Quick Stop Failed\r\n");
                              }
-                             Delay_ms(200);
+                             Delay_ms(1000);
                              if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x0000) != HAL_OK) {  // Disable Voltage
                                Debug_Print("Disable Voltage Failed\r\n");
                              }
                              Debug_Print("Motion Complete\r\n");
+                             Delay_ms(1000);
+
 
 
 
@@ -588,6 +608,127 @@ int main(void)
                                Debug_Print("reset for next motion Failed\r\n");
                              }
                              Debug_Print("Motion Complete\r\n");
+                             Delay_ms(1000);
+
+
+
+
+
+
+
+                             // reverse drive start
+
+
+                             if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x0006) != HAL_OK) {
+                               Debug_Print("Switch On Failed\r\n");
+                               Error_Handler();
+                             }
+                             Delay_ms(1000);
+                             status = CANopen_SDO_Read16(&hcan1, OD_STATUSWORD, 0x00);
+                             snprintf(buf, sizeof(buf), "Status after Switch On: 0x%04X\r\n", status);
+                             Debug_Print(buf);
+
+                             if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x0007) != HAL_OK) {
+                               Debug_Print("Switched On Failed\r\n");
+                               Error_Handler();
+                             }
+                             Delay_ms(1000);
+                             status = CANopen_SDO_Read16(&hcan1, OD_STATUSWORD, 0x00);
+                             snprintf(buf, sizeof(buf), "Status after Switched On: 0x%04X\r\n", status);
+                             Debug_Print(buf);
+
+                             if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x000F) != HAL_OK) {
+                               Debug_Print("Enable Operation Failed\r\n");
+                               Error_Handler();
+                             }
+                             Delay_ms(1000);
+
+                             // Set target position
+                             if (CANopen_SDO_Write32(&hcan1, OD_TARGET_POSITION, 0x00, N_TARGET_POSITION) != HAL_OK) {
+                               Debug_Print("Set Position Failed\r\n");
+                               Error_Handler();
+                             }
+
+
+                             Delay_ms(100);
+                             status = CANopen_SDO_Read16(&hcan1, OD_STATUSWORD, 0x00);
+                             snprintf(buf, sizeof(buf), "Status after Enable Op: 0x%04X\r\n", status);
+                             Debug_Print(buf);
+
+
+  /*
+                             if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x001F) != HAL_OK) { // 0101 1111 = 5F (6 bits 1 sets relative); 0001 1111 1F is absolute with 6 bit 0;
+                               Debug_Print("Mark the new target position as active Failed\r\n");
+                               Error_Handler();
+                             }
+                             Delay_ms(100);
+                             Debug_Print("Mark the new target position as active Sent\r\n");
+  */
+
+
+                             if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x005F) != HAL_OK) { // 0101 1111 = 5F (6 bits 1 sets relative); 0001 1111 1F is absolute with 6 bit 0;
+                          	   // with relative its easier to control direction, line 500k steps in one direction than 100k steps back;
+                               Debug_Print("Mark the new target position as active Failed\r\n");
+                               Error_Handler();
+                             }
+                             Delay_ms(100);
+                             Debug_Print("Mark the new target position as active Sent\r\n");
+
+
+                             if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x000F) != HAL_OK) {
+                                Debug_Print("Reset the activationn Failed\r\n");
+                                Error_Handler();
+                             }
+                             Delay_ms(100);
+
+                             // Poll statusword for target reached
+                               do {
+                                 status = CANopen_SDO_Read16(&hcan1, OD_STATUSWORD, 0x00);
+                                 snprintf(buf, sizeof(buf), "Statusword: 0x%04X\r\n", status);
+                                 Debug_Print(buf);
+                                 if (status == 0xFFFF) {
+                                   Debug_Print("SDO Read Failed\r\n");
+                                   Error_Handler();
+                                 }
+                                 current_pos = (int32_t)CANopen_SDO_Read32(&hcan1, OD_ACTUAL_POSITION, 0x00);
+                                 snprintf(buf, sizeof(buf), "Current Position: %ld steps\r\n", current_pos);
+                                 Debug_Print(buf);
+                                 Delay_ms(100);
+                               } while (!(status & 0x0400));  // Bit 10: Target reached
+
+                               // reverse drive end
+
+
+
+                               // Stop
+                               if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x0002) != HAL_OK) {  // Quick Stop
+                                 Debug_Print("Quick Stop Failed\r\n");
+                               }
+                               Delay_ms(1000);
+                               if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x0000) != HAL_OK) {  // Disable Voltage
+                                 Debug_Print("Disable Voltage Failed\r\n");
+                               }
+                               Debug_Print("Motion Complete\r\n");
+                               Delay_ms(1000);
+
+
+
+
+                               // Reset for next motion
+                               if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x0006) != HAL_OK) {
+                                 Debug_Print("reset for next motion Failed\r\n");
+                               }
+                               Debug_Print("Motion Complete\r\n");
+                               Delay_ms(1000);
+
+
+
+
+
+
+
+
+
 
 
 
