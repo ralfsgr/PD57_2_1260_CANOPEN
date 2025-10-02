@@ -359,6 +359,8 @@ int main(void)
 
 
 
+
+
                 // Check homing completion by position (method 35 sets position to 0)
                 int32_t current_pos = (int32_t)CANopen_SDO_Read32(&hcan1, OD_ACTUAL_POSITION, 0x00);
                   snprintf(buf, sizeof(buf), "Position after homing: %ld steps\r\n", current_pos);
@@ -406,7 +408,64 @@ int main(void)
                         Delay_ms(50);
 
 
+
+
+
+
                          // CiA 402 state machine
+
+
+
+
+
+                        // homing start
+                        Debug_Print("Starting CiA 402 Transition\r\n");
+                        if (CANopen_SDO_Write8(&hcan1, OD_MODE_OPERATION, 0x00, 0x06) != HAL_OK) {
+                        Debug_Print("Switch On Failed\r\n");
+                        Error_Handler();
+                        }
+                        Delay_ms(100);
+
+                        if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x0006) != HAL_OK) {
+                          Debug_Print("Switch On Failed\r\n");
+                          Error_Handler();
+                        }
+                        Delay_ms(500);
+
+                        if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x0007) != HAL_OK) {
+                          Debug_Print("Switch On Failed\r\n");
+                          Error_Handler();
+                        }
+                        Delay_ms(500);
+
+                        if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x000F) != HAL_OK) {
+                          Debug_Print("Switch On Failed\r\n");
+                          Error_Handler();
+                        }
+                        Delay_ms(500);
+
+                        // homing to zero test
+                        Debug_Print("Starting Homing\r\n");
+                        if (CANopen_SDO_Write8(&hcan1, OD_HOMING_METHOD, 0x00, 0x23) != HAL_OK) {  // Method 35: Current position = 0
+                          Debug_Print("Set Homing Method Failed\r\n");
+                          Error_Handler();
+                        }
+                        Delay_ms(100);
+
+                        if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x001F) != HAL_OK) {
+                          Debug_Print("Switch On Failed\r\n");
+                          Error_Handler();
+                        }
+                        Delay_ms(500);
+
+                        if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x001F) != HAL_OK) {
+                          Debug_Print("Switch On Failed\r\n");
+                          Error_Handler();
+                        }
+                        Delay_ms(500);
+                        // homing end
+
+
 
                         // Disable limit switches
                         if (CANopen_SDO_Write32(&hcan1, OD_LIMIT_SWITCHES, 0x00, 0x00000003) != HAL_OK) {
@@ -414,7 +473,6 @@ int main(void)
                           Error_Handler();
                         }
                         Delay_ms(100);
-
 
                            Debug_Print("Starting CiA 402 Transition\r\n");
                            if (CANopen_SDO_Write8(&hcan1, OD_MODE_OPERATION, 0x00, 0x01) != HAL_OK) {
@@ -427,7 +485,7 @@ int main(void)
                              Debug_Print("Switch On Failed\r\n");
                              Error_Handler();
                            }
-                           Delay_ms(100);
+                           Delay_ms(500);
                            status = CANopen_SDO_Read16(&hcan1, OD_STATUSWORD, 0x00);
                            snprintf(buf, sizeof(buf), "Status after Switch On: 0x%04X\r\n", status);
                            Debug_Print(buf);
@@ -436,7 +494,7 @@ int main(void)
                              Debug_Print("Switched On Failed\r\n");
                              Error_Handler();
                            }
-                           Delay_ms(100);
+                           Delay_ms(500);
                            status = CANopen_SDO_Read16(&hcan1, OD_STATUSWORD, 0x00);
                            snprintf(buf, sizeof(buf), "Status after Switched On: 0x%04X\r\n", status);
                            Debug_Print(buf);
@@ -445,6 +503,7 @@ int main(void)
                              Debug_Print("Enable Operation Failed\r\n");
                              Error_Handler();
                            }
+                           Delay_ms(500);
 
                            // Set target position
                            if (CANopen_SDO_Write32(&hcan1, OD_TARGET_POSITION, 0x00, TARGET_POSITION) != HAL_OK) {

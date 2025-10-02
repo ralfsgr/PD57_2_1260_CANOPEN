@@ -60,8 +60,8 @@ all: main-build
 main-build: PD57_2_1260_CANOPEN.elf secondary-outputs
 
 # Tool invocations
-PD57_2_1260_CANOPEN.elf PD57_2_1260_CANOPEN.map: $(OBJS) $(USER_OBJS) C:\Workspace\STM32CubeIDE\STM32CubeIDE\workspace_1.10.1\PD57_2_1260_CANOPEN\STM32F756ZGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "PD57_2_1260_CANOPEN.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Workspace\STM32CubeIDE\STM32CubeIDE\workspace_1.10.1\PD57_2_1260_CANOPEN\STM32F756ZGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="PD57_2_1260_CANOPEN.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+PD57_2_1260_CANOPEN.elf PD57_2_1260_CANOPEN.map: $(OBJS) $(USER_OBJS) C:\Workspace\STM32CubeIDE\downloads_from_gitlab\PD57_2_1260_CANOPEN\PD57_2_1260_CANOPEN\STM32F756ZGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "PD57_2_1260_CANOPEN.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Workspace\STM32CubeIDE\downloads_from_gitlab\PD57_2_1260_CANOPEN\PD57_2_1260_CANOPEN\STM32F756ZGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="PD57_2_1260_CANOPEN.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
