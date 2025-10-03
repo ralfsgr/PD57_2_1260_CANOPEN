@@ -408,7 +408,7 @@ int main(void)
 
                         // homing start
                         Debug_Print("Starting CiA 402 Transition\r\n");
-                        if (CANopen_SDO_Write8(&hcan1, OD_MODE_OPERATION, 0x00, 0x06) != HAL_OK) {
+                        if (CANopen_SDO_Write8(&hcan1, OD_MODE_OPERATION, 0x00, 0x06) != HAL_OK) { // homing mode
                         Debug_Print("Switch On Failed\r\n");
                         Error_Handler();
                         }
@@ -478,6 +478,8 @@ int main(void)
 
                               // Reset state machine
                                 if (CANopen_SDO_Write16(&hcan1, OD_CONTROLWORD, 0x00, 0x0000) != HAL_OK) {  // Disable Voltage
+                                	// 6.1 Detailed Object Specifications & 7.1.1 Object 6040h: Control Word
+                                	// transition is from previous value 15 (1111) to 0000, so does not know if its correct sequence;
                                   Debug_Print("Disable Voltage Failed\r\n");
                                   Error_Handler();
                                 }
@@ -492,6 +494,7 @@ int main(void)
 // 7.1.1 Object 6040h: Control Word
 // 6.2 How to move a Motor in pp Mode
 // 8.3 How to start a Homing in hm Mode
+
 
 
                          // drive start
@@ -585,7 +588,7 @@ int main(void)
                                snprintf(buf, sizeof(buf), "Current Position: %ld steps\r\n", current_pos);
                                Debug_Print(buf);
                                Delay_ms(100);
-                             } while (!(status & 0x0400));  // Bit 10: Target reached
+                             } while (!(status & 0x0400));  // Bit 10: Target reached (0x6041 register)
 
                              // drive end
 
